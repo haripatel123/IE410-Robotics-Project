@@ -1,0 +1,48 @@
+#include <Wire.h>
+#include <SparkFun_ICM-20948_ArduinoLibrary.h> // SparkFun library
+
+ICM_20948_I2C myICM;
+
+void setup() {
+  Serial.begin(115200);
+  while (!Serial);
+
+  Wire.begin(21, 22); // SDA, SCL pins for ESP32
+  Serial.println("Initializing ICM-20948...");
+
+  // Try to initialize the IMU
+  myICM.begin(Wire, 0x68);
+
+  if (myICM.status != ICM_20948_Stat_Ok) {
+    Serial.print("IMU initialization failed. Status: ");
+    Serial.println(myICM.statusString());
+    while (1); // stop here
+  }
+
+  Serial.println("ICM-20948 connected successfully!");
+}
+
+void loop() {
+  if (myICM.dataReady()) {
+    myICM.getAGMT(); // read Accelerometer, Gyroscope, Magnetometer, and Temperature
+
+    Serial.print("Accel (mg): ");
+    Serial.print(myICM.accX(), 2);
+    Serial.print(", ");
+    Serial.print(myICM.accY(), 2);
+    Serial.print(", ");
+    Serial.print(myICM.accZ(), 2);
+    Serial.print(" | Gyro (dps): ");
+    Serial.print(myICM.gyrX(), 2);
+    Serial.print(", ");
+    Serial.print(myICM.gyrY(), 2);
+    Serial.print(", ");
+    Serial.print(myICM.gyrZ(), 2);
+    Serial.print(" | Temp (°C): ");
+    Serial.println(myICM.temp(), 2);
+  } else {
+    Serial.println("Waiting for data...");
+  }
+
+  delay(500);
+}
